@@ -1,2 +1,2 @@
 # BARTsimultation
-Simulation of small sample data to compare matching methods like PS, IPTW BARt
+Simulation project to compare matching methods (IPTW, Overlap Weights, BART) on small sample data
