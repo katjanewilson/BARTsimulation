@@ -12,10 +12,9 @@ rstan::rstan_options(javascript = FALSE)
 options(mc.cores = parallel::detectCores())
 devAskNewPage(ask = FALSE)
 Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
+#1) Input data. 
 
-#1) Input data.
-
-dsim <- read.csv("raw/ind_sim1.csv", sep = ",", header = TRUE)
+dsim <- read.csv("ind_sim1.csv",sep=",",header=TRUE)
 
 size_gen <- 1000
 
@@ -27,22 +26,17 @@ chains <- 4
 
 iter_hb <- 2000
 
-#Covariate Set
+# Covariate Set
 
-covars <- c("z_s09_ELA", "z_s09_math", "Attendance_0809", "FTE08",
-            "MEMBER08","PUPTCH08","county.pop","TITLEI08",
-            "STITLI08","male","white","sped","frpl",
-            "lep")
+covars <- c("z_s09_ELA","z_s09_math","Attendance_0809","FTE08","MEMBER08","PUPTCH08","county.pop","TITLEI08","STITLI08","male","white","sped","frpl","lep")
 
 ns <- c(3,4,5)
 
-est_smallsamp <- c("sub", "odds_ipw", "overlap_ipw", "bart", "drwlsl",
-                   "drwls2","drwls3","tmle","eblup","hb")
+est_smallsamp <- c("sub","odds_ipw","overlap_ipw","bart","drwls1","drwls2","drwls3","tmle","eblup","hb")
 
-#source(paste(paste("stan_start", sep= ""), ".R", sep = ""))
+# source(paste(paste("stan_start",sep=""),".R",sep=""))
 
-# initiate stan code #
-
+# INITIATE STAN CODE #
 
 # load(file=paste(paste("samp_use",(num.samp),sep=""),".Rdata",sep=""))
 # 
@@ -61,7 +55,6 @@ est_smallsamp <- c("sub", "odds_ipw", "overlap_ipw", "bart", "drwlsl",
 # }
 # 
 # stanmodel <- stan(file="sdl_5.stan", data=data_stan, chains=0)
-
 
 ### INITIALIZATION OF OUTPUT ARRAYS ###
 
