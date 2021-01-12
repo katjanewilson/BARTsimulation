@@ -14,7 +14,7 @@ devAskNewPage(ask = FALSE)
 Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
 #1) Input data. 
 
-dsim <- read.csv("ind_sim1.csv",sep=",",header=TRUE)
+dsim <- read.csv("raw/ind_sim1.csv",sep=",",header=TRUE)
 
 size_gen <- 1000
 

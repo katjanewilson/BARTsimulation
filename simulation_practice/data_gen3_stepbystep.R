@@ -79,14 +79,16 @@ sel_samp <- sample(dsim$SchoolNo,
                    size = num.samp,
                    prob = dsim$prob,
                    replace = FALSE)
+sel_samp
 
-samp_ID[,k] <- sel_samp
+samp_ID[,100] <- sel_samp
 
 dsim$study<-ifelse((dsim$SchoolNo %in% sel_samp),1,0)
 
 D <- subset(dsim,dsim$study==1)[,"SchoolNo"]
 
 sel_samp2 <- sample(D,size=round(0.5*num.samp),replace=F)
+sel_samp2
 
 dsim$trt <- ifelse((dsim$SchoolNo %in% sel_samp2),1,0)
 
@@ -95,3 +97,83 @@ dsim$trt <- ifelse((dsim$SchoolNo %in% sel_samp2),1,0)
 covars_sim <- as.matrix(scale(data.frame(dsim[c(covars)])))
 
 d1 <- data.frame(cbind(dsim$SchoolNo,data.frame(scale(dsim[c(covars)])),dsim$study,dsim$trt))
+
+
+
+pos <- match(4,ns) 
+
+mod <- matchit(dsim.study~covars_sim, data = data.frame(d1), method = "subclass", subclass = 4, estimand = "ATE", distance = "glm")
+
+matched<- match.data(mod)
+
+dsim_new<-data.frame(cbind(dsim,matched[c("subclass","distance")]))
+
+sample.dsim<-subset(dsim_new,study==1)
+
+
+
+d_use <- dsim_new[c("SchoolNo",covars,"study","subclass","distance","trt")]
+
+beta <- as.matrix(rep(1,10))
+
+
+for (f in 1:nrow(d_use)){
+  d_use$v[f] <- rnorm(1)
+  d_use$yt[f] <- 1 + sum(beta[2:5]*d_use[f,c("z_s09_ELA","z_s09_math","frpl","lep")])+ beta[6]*d_use$v[f]+beta[7]*1 + beta[8]*1*d_use$z_s09_ELA[f] + beta[9]*1*d_use$z_s09_math[f]+beta[10]*((d_use$frpl[f])^2)
+  d_use$yc[f] <- 1 + sum(beta[2:5]*d_use[f,c("z_s09_ELA","z_s09_math","frpl","lep")])+ beta[6]*d_use$v[f]
+}
+
+samp_use<-data.frame(subset(d_use,study==1))
+
+for (g in 1:nrow(samp_use)){
+  samp_use$y[g] <-ifelse(samp_use$trt[g]==1,samp_use$yt[g], samp_use$yc[g])
+}
+
+d_non <- data.frame(subset(d_use,study==0)) # Non-sampled population
+
+d_non$y <- d_non$trt <- NA
+
+
+d_combined <- data.frame(rbind(samp_use,d_non)) # Stacked data frame for the non-sampled and sampled units
+
+truth <- mean(d_use$yt) - mean(d_use$yc) # True PATE
+truth
+
+
+
+# SUBCLASSIFICATION ESTIMATOR
+
+for(ss in 1:nrow(samp_use)){
+  for(tt in 1:4){
+    samp_use[ss,paste("sub",tt,sep="")] <- ifelse(samp_use$subclass[ss]==tt,1,0)
+    samp_use[ss,paste(paste("sub",tt,sep=""),"T",sep="")] <- samp_use[ss,paste("sub",tt,sep="")]*samp_use[ss,"trt"]
+  } # Creates indicators for each subclass and subclass x trt interaction in the sample
+}
+
+for(ss in 1:nrow(d_non)){
+  for(tt in 1:4){
+    d_non[ss,paste("sub",tt,sep="")] <- ifelse(d_non$subclass[ss]==tt,1,0)
+    d_non[ss,paste(paste("sub",tt,sep=""),"T",sep="")] <- d_non[ss,paste("sub",tt,sep="")]*d_non[ss,"trt"]
+  } # Creates indicators for each subclass and subclass x trt interaction in the non-sampled pop
+}
+
+mod_sub <- lm(as.formula(paste(paste(paste("y~",paste(paste(c(paste("sub",c(1:4),sep=""),paste(paste("sub",c(1:4),sep=""),"T",sep="")),collapse="+"),sep=""))),"-1",sep="")),data=samp_use)
+
+estimators["sub",1,k,pos] <- mean(mod_sub$coefficients[(4+1):(2*4)])
+estimators
+
+
+
+# WEIGHTING BY ODDS ESTIMATOR
+
+gen_object <- generalize(outcome="y",treatment = "trt",trial = "study",selection_covariates = covars,data=d_combined,is_data_disjoint = T)
+
+estimators["odds_ipw",1,k,pos] <- gen_object$TATE$estimate
+
+# WEIGHTING BY OVERLAP ESTIMATOR
+
+estimators["overlap_ipw",1,k,pos] <- (sum(samp_use$y[samp_use$trt==1]*(samp_use$distance[samp_use$trt==1]))/(sum(samp_use$trt[samp_use$trt==1]*samp_use$distance[samp_use$trt==1]))) - 
+  (sum(samp_use$y[samp_use$trt==0]*(samp_use$distance[samp_use$trt==0]))/(sum(1-samp_use$trt[samp_use$trt==0]*samp_use$distance[samp_use$trt==0])))
+
+
+estimators[1]
