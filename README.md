@@ -1,2 +1,3 @@
-# BARTsimultation
-Simulation of small sample data to compare matching methods like PS, IPTW BARt
+# Small Samples Generalization
+
+Researchers working in a small sample framework (where the sample size is <10% of the population) have justifiable concerns about generalizability, or how findings translate to a larger target population of interest. Under a Monte Carlo simulation framework, we evaluate how covariance adjustment and matching methods affect bias in estimates of the ATE (Average Treatment Effect). The adjustment methods assessed include stratification, IPTW (Inverse Probability Treatment Weighting), and Bayesian Additive Regression Trees (used here as a non parametric approach to estimating propensity scores).
