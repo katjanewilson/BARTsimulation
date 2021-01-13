@@ -9,9 +9,8 @@ library(xtable)
 library(boot)
 
 #1) Read in RCT data.
-library(readr)
+library(tidyverse)
 data <- read_csv("simulation_practice/indiana_data.csv")
-
 #2) Covariates
 covars_list<-c("z_s09_ELA","z_s09_math","z_f08_ELA","z_f08_math","z_05_ELA","z_05_math","z_06_ELA","z_06_math","z_07_ELA","z_07_math","avg_teach_salary_08","Attendance_0809","Attendance_0708","FTE08","MEMBER08","PUPTCH08","urban08","suburb08","county.pop","TITLEI08","STITLI08","CHARTR08","male","white","sped","frpl","lep") # All covars
 
@@ -37,4 +36,3 @@ for(i in 1:nrow(data)){
 }
 
 summary(data[,"prob"])
-
